@@ -1,6 +1,26 @@
-version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15
+    container_name: solarflow-db
+    environment:
+      POSTGRES_DB: solarflow
+      POSTGRES_USER: solarflow_admin
+      POSTGRES_PASSWORD: solarflow123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - solarflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solarflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: solarflow-mqtt
@@ -16,9 +36,10 @@ services:
       - solarflow-network
 
 volumes:
+  postgres_data:
   mosquitto_data:
   mosquitto_logs:
 
 networks:
   solarflow-network:
-    driver: bridge6
+    driver: bridge
